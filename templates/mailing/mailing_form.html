@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Редактирование{% else %}Создание{% endif %} рассылки{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">{% if object %}Редактирование{% else %}Создание{% endif %} рассылки</h4>
+            </div>
+            <div class="card-body">
+                <!-- Отображение ошибок формы -->
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    <h5 class="alert-heading">Исправьте следующие ошибки:</h5>
+                    <ul>
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li><strong>{{ field }}:</strong> {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- Проверка наличия сообщений и получателей -->
+                {% if not user.messages.exists %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    У вас еще нет сообщений.
+                    <a href="{% url 'mailing:message_create' %}" class="alert-link">Создайте сообщение</a> сначала.
+                </div>
+                {% endif %}
+
+                {% if not user.recipients.exists %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    У вас еще нет получателей.
+                    <a href="{% url 'mailing:recipient_create' %}" class="alert-link">Добавьте получателя</a> сначала.
+                </div>
+                {% endif %}
+
+                <form method="post" id="mailingForm">
+                    {% csrf_token %}
+
+                    {% for field in form %}
+                    <div class="mb-3">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.help_text %}
+                        <small class="text-muted">{{ field.help_text|safe }}</small>
+                        {% endif %}
+                        {% if field.errors %}
+                        <div class="text-danger">{{ field.errors }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'mailing:mailing_list' %}" class="btn btn-secondary">Отмена</a>
+                        <button type="submit" class="btn btn-primary"
+                                {% if not user.messages.exists or not user.recipients.exists %}disabled{% endif %}>
+                            {% if object %}Сохранить{% else %}Создать{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
