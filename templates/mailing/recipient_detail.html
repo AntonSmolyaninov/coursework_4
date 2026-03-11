@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}{{ recipient.full_name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'mailing:home' %}">Главная</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'mailing:recipient_list' %}">Получатели</a></li>
+                <li class="breadcrumb-item active">{{ recipient.full_name }}</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>{{ recipient.full_name }}</h1>
+            {% if user == recipient.owner %}
+            <div>
+                <a href="{% url 'mailing:recipient_update' recipient.pk %}" class="btn btn-warning">
+                    <i class="bi bi-pencil"></i> Редактировать
+                </a>
+                <a href="{% url 'mailing:recipient_delete' recipient.pk %}" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Удалить
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Информация о получателе</h5>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <tr>
+                        <th style="width: 200px;">Email:</th>
+                        <td>{{ recipient.email }}</td>
+                    </tr>
+                    <tr>
+                        <th>Ф.И.О.:</th>
+                        <td>{{ recipient.full_name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Комментарий:</th>
+                        <td>{{ recipient.comment|linebreaks|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Владелец:</th>
+                        <td>{{ recipient.owner.email }}</td>
+                    </tr>
+                    <tr>
+                        <th>Дата создания:</th>
+                        <td>{{ recipient.created_at|date:"d.m.Y H:i" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Последнее обновление:</th>
+                        <td>{{ recipient.updated_at|date:"d.m.Y H:i" }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Рассылки для этого получателя</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Сообщение</th>
+                                <th>Статус</th>
+                                <th>Дата начала</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mailing in recipient.mailings.all %}
+                            <tr>
+                                <td>{{ mailing.id }}</td>
+                                <td>{{ mailing.message.subject|truncatechars:30 }}</td>
+                                <td>
+                                    {% if mailing.get_status == 'created' %}
+                                        <span class="badge bg-secondary">Создана</span>
+                                    {% elif mailing.get_status == 'running' %}
+                                        <span class="badge bg-success">Запущена</span>
+                                    {% else %}
+                                        <span class="badge bg-info">Завершена</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ mailing.start_time|date:"d.m.Y H:i" }}</td>
+                                <td>
+                                    <a href="{% url 'mailing:mailing_detail' mailing.pk %}" class="btn btn-sm btn-info">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center">Нет рассылок для этого получателя</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
